@@ -25,7 +25,7 @@ public class Main {
   private static final String TEST_ADMIN_NAME = "admin";
   private static final String FOO_CHANNEL_NAME = "foo";
   private static final String testUser1 = "user1";
-  private static final String NETWORK_PATH="sdkintegration";
+  private static final String NETWORK_PATH="network";
   private static final String CHAINCODE_PATH="chaincode";
   private static final String CHAIN_CODE_NAME = "example_cc_java";
   private static final String CHAIN_CODE_VERSION = "1";

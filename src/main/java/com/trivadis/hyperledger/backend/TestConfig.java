@@ -192,7 +192,7 @@ public class TestConfig {
                 sampleOrg.setCAName(sdkProperties.getProperty((INTEGRATIONTESTS_ORG + org.getKey() + ".caName")));
 
                 if (runningFabricCATLS) {
-                    String cert = "sdkintegration/e2e-2Orgs/FAB_CONFIG_GEN_VERS/crypto-config/peerOrganizations/DNAME/ca/ca.DNAME-cert.pem"
+                    String cert = "network/e2e-2Orgs/FAB_CONFIG_GEN_VERS/crypto-config/peerOrganizations/DNAME/ca/ca.DNAME-cert.pem"
                             .replaceAll("DNAME", domainName).replaceAll("FAB_CONFIG_GEN_VERS", FAB_CONFIG_GEN_VERS);
                     File cf = new File(cert);
                     if (!cf.exists() || !cf.isFile()) {
@@ -415,7 +415,7 @@ public class TestConfig {
 
     public String getTestChannelPath() {
 
-        return "sdkintegration/e2e-2Orgs/" + FAB_CONFIG_GEN_VERS;
+        return "network/e2e-2Orgs/" + FAB_CONFIG_GEN_VERS;
 
     }
 
