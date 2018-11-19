@@ -8,6 +8,8 @@ import org.hyperledger.fabric_ca.sdk.EnrollmentRequest;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
 import org.hyperledger.fabric_ca.sdk.HFCAInfo;
 import org.hyperledger.fabric_ca.sdk.RegistrationRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.StringWriter;
@@ -21,6 +23,9 @@ import static org.hyperledger.fabric.sdk.Channel.PeerOptions.createPeerOptions;
 import static org.hyperledger.fabric.sdk.Channel.TransactionOptions.createTransactionOptions;
 
 public class Main {
+
+  private static final Logger log = LoggerFactory.getLogger(Main.class);
+
   private static final TestConfig testConfig = TestConfig.getConfig();
   private static final String TEST_ADMIN_NAME = "admin";
   private static final String FOO_CHANNEL_NAME = "foo";
@@ -50,7 +55,7 @@ public class Main {
     for (SampleOrg sampleOrg : testSampleOrgs) {
       String caName = sampleOrg.getCAName(); //Try one of each name and no name.
       if (caName != null && !caName.isEmpty()) {
-        sampleOrg.setCAClient(org.hyperledger.fabric_ca.sdk.HFCAClient.createNewInstance(caName, sampleOrg.getCALocation(), sampleOrg.getCAProperties()));
+        sampleOrg.setCAClient(HFCAClient.createNewInstance(caName, sampleOrg.getCALocation(), sampleOrg.getCAProperties()));
       } else {
         sampleOrg.setCAClient(HFCAClient.createNewInstance(sampleOrg.getCALocation(), sampleOrg.getCAProperties()));
       }
@@ -95,10 +100,11 @@ public class Main {
     Collection<ProposalResponse> queryProposals = channel.queryByChaincode(queryByChaincodeRequest, channel.getPeers());
     for (ProposalResponse proposalResponse : queryProposals) {
       if (!proposalResponse.isVerified() || proposalResponse.getStatus() != ProposalResponse.Status.SUCCESS) {
+        log.error("error quering {}", queryByChaincodeRequest);
+        throw  new RuntimeException("error querying");
       } else {
         String payload = proposalResponse.getProposalResponse().getResponse().getPayload().toStringUtf8();
-
-        System.out.println("---------------------> "+payload);
+        log.info("query success {}",payload);
 
       }
     }
@@ -134,8 +140,6 @@ public class Main {
 
     transactionProposalRequest.setTransientMap(tm2);
 
-
-    //  Collection<ProposalResponse> transactionPropResp = channel.sendTransactionProposalToEndorsers(transactionProposalRequest);
     Collection<ProposalResponse> transactionPropResp = channel.sendTransactionProposal(transactionProposalRequest, channel.getPeers());
     for (ProposalResponse response : transactionPropResp) {
       if (response.getStatus() == ProposalResponse.Status.SUCCESS) {
@@ -156,10 +160,9 @@ public class Main {
     // See org.hyperledger.fabric.sdk.proposal.consistency_validation config property.
     Collection<Set<ProposalResponse>> proposalConsistencySets = SDKUtils.getProposalConsistencySets(transactionPropResp);
     if (proposalConsistencySets.size() != 1) {
-      //fail
+      log.error("inconsistent proposal result {}",proposalConsistencySets);
+      throw new RuntimeException("inconsistent proposal result");
     }
-
-    //  System.exit(10);
 
     ProposalResponse resp = successful.iterator().next();
     byte[] x = resp.getChaincodeActionResponsePayload(); // This is the data returned by the chaincode.
@@ -167,21 +170,13 @@ public class Main {
     if (x != null) {
       resultAsString = new String(x, UTF_8);
     }
-    System.out.println(resultAsString);
-
-
-    TxReadWriteSetInfo readWriteSetInfo = resp.getChaincodeActionResponseReadWriteSetInfo();
-    //See blockwalker below how to transverse this
-
-    ChaincodeID cid = resp.getChaincodeID();
-    final String path = cid.getPath();
-
+    log.info("result of invoking chaincode {}",resultAsString);
 
     ////////////////////////////
     // Send Transaction Transaction to orderer
     BlockEvent.TransactionEvent transactionEvent = channel.sendTransaction(successful).get(testConfig.getTransactionWaitTime(), TimeUnit.SECONDS);
 
-    System.out.println(transactionEvent);
+    log.info("result of sending peer responses to orderer {}",transactionEvent);
 
   }
 
@@ -222,11 +217,8 @@ public class Main {
       }
     }
     if (failed.size() > 0) {
-      for (ProposalResponse fail : failed) {
-
-
-      }
-      ProposalResponse first = failed.iterator().next();
+      log.error("instantiation failed {}",failed);
+      throw new RuntimeException("failed to instantiate chaincode");
     }
     ///////////////
     /// Send instantiate transaction to orderer
@@ -250,7 +242,7 @@ public class Main {
         .nOfEvents(nOfEvents) // The events to signal the completion of the interest in the transaction
     ).get();
 
-    System.out.println(transactionEvent);
+    log.info("successfully instantiated chaincode {}",transactionEvent);
   }
 
   private void install(HFClient client, Channel channel, SampleOrg sampleOrg) throws Exception {
@@ -282,14 +274,14 @@ public class Main {
     int numInstallProposal = 0;
 
     Collection<Peer> peers = channel.getPeers();
-    numInstallProposal = numInstallProposal + peers.size();
     responses = client.sendInstallProposal(installProposalRequest, peers);
 
     for (ProposalResponse response : responses) {
       if (response.getStatus() == ProposalResponse.Status.SUCCESS) {
         successful.add(response);
       } else {
-        failed.add(response);
+        log.error("error installing chaincode {}",response);
+        throw new RuntimeException("error installing chaincode");
       }
     }
 

@@ -45,7 +45,6 @@ public class TestConfig {
     private static final String INVOKEWAITTIME = PROPBASE + "InvokeWaitTime";
     private static final String DEPLOYWAITTIME = PROPBASE + "DeployWaitTime";
     private static final String PROPOSALWAITTIME = PROPBASE + "ProposalWaitTime";
-    private static final String RUNIDEMIXMTTEST = PROPBASE + "RunIdemixMTTest";  // org.hyperledger.fabric.sdktest.RunIdemixMTTest ORG_HYPERLEDGER_FABRIC_SDKTEST_RUNIDEMIXMTTEST
 
     private static final String INTEGRATIONTESTS_ORG = PROPBASE + "integrationTests.org.";
     private static final Pattern orgPat = Pattern.compile("^" + Pattern.quote(INTEGRATIONTESTS_ORG) + "([^\\.]+)\\.mspid$");
@@ -65,16 +64,7 @@ public class TestConfig {
     private final boolean runningFabricTLS;
     private final HashMap<String, SampleOrg> sampleOrgs = new HashMap<>();
 
-    private static final String ORG_HYPERLEDGER_FABRIC_SDKTEST_VERSION = "1.3.0";
-
     private TestConfig() {
-
-        final String[] fvs = ORG_HYPERLEDGER_FABRIC_SDKTEST_VERSION.split("\\.");
-        if (fvs.length != 3) {
-            throw new AssertionError("Expected environment variable 'ORG_HYPERLEDGER_FABRIC_SDKTEST_VERSION' to be three numbers sperated by dots (1.0.0)  but got: " + ORG_HYPERLEDGER_FABRIC_SDKTEST_VERSION);
-
-        }
-
 
         try {
             sdkProperties.load(TestConfig.class.getClassLoader().getResourceAsStream("config.properties"));
@@ -214,10 +204,6 @@ public class TestConfig {
 
     public long getProposalWaitTime() {
         return Integer.parseInt(getProperty(PROPOSALWAITTIME));
-    }
-
-    public boolean getRunIdemixMTTest() {
-        return Boolean.valueOf(getProperty(RUNIDEMIXMTTEST));
     }
 
     public Collection<SampleOrg> getIntegrationTestsSampleOrgs() {
