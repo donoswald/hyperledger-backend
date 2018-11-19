@@ -62,9 +62,7 @@ public class TestConfig {
     private static final Pattern orgPat = Pattern.compile("^" + Pattern.quote(INTEGRATIONTESTS_ORG) + "([^\\.]+)\\.mspid$");
 
     private static final String INTEGRATIONTESTSTLS = PROPBASE + "integrationtests.tls";
-    // location switching between fabric cryptogen and configtxgen artifacts for v1.0 and v1.1 in src/test/fixture/sdkintegration/e2e-2Orgs
-    public final String FAB_CONFIG_GEN_VERS;
-    //   Objects.equals(System.getenv("ORG_HYPERLEDGER_FABRIC_SDKTEST_VERSION"), "1.0.0") ? "v1.0" : "v1.3";
+    public final String FAB_CONFIG_GEN_VERS="v1.3";
 
     private static TestConfig config;
     private static final Properties sdkProperties = new Properties();
@@ -78,10 +76,9 @@ public class TestConfig {
     private final boolean runningFabricTLS;
     private final HashMap<String, SampleOrg> sampleOrgs = new HashMap<>();
 
-    private static final String ORG_HYPERLEDGER_FABRIC_SDKTEST_VERSION
-            = System.getenv("ORG_HYPERLEDGER_FABRIC_SDKTEST_VERSION") == null ? "1.3.0" : System.getenv("ORG_HYPERLEDGER_FABRIC_SDKTEST_VERSION");
+    private static final String ORG_HYPERLEDGER_FABRIC_SDKTEST_VERSION="1.3.0";
 
-    int[] fabricVersion = new int[3];
+   // int[] fabricVersion = new int[3];
 
     private TestConfig() {
 
@@ -90,11 +87,6 @@ public class TestConfig {
             throw new AssertionError("Expected environment variable 'ORG_HYPERLEDGER_FABRIC_SDKTEST_VERSION' to be three numbers sperated by dots (1.0.0)  but got: " + ORG_HYPERLEDGER_FABRIC_SDKTEST_VERSION);
 
         }
-        fabricVersion[0] = Integer.parseInt(fvs[0].trim());
-        fabricVersion[1] = Integer.parseInt(fvs[1].trim());
-        fabricVersion[2] = Integer.parseInt(fvs[2].trim());
-
-        FAB_CONFIG_GEN_VERS = "v" + fabricVersion[0] + "." + fabricVersion[1];
 
         File loadFile;
         FileInputStream configProps;
@@ -177,15 +169,6 @@ public class TestConfig {
                     sampleOrg.addOrdererLocation(nl[0], grpcTLSify(nl[1]));
                 }
 
-                if (isFabricVersionBefore("1.3")) { // Eventhubs supported.
-
-                    String eventHubNames = sdkProperties.getProperty(INTEGRATIONTESTS_ORG + orgName + ".eventhub_locations");
-                    ps = eventHubNames.split("[ \t]*,[ \t]*");
-                    for (String peer : ps) {
-                        String[] nl = peer.split("[ \t]*@[ \t]*");
-                        sampleOrg.addEventHubLocation(nl[0], grpcTLSify(nl[1]));
-                    }
-                }
 
                 sampleOrg.setCALocation(httpTLSify(sdkProperties.getProperty((INTEGRATIONTESTS_ORG + org.getKey() + ".ca_location"))));
 
@@ -215,21 +198,7 @@ public class TestConfig {
         return FAB_CONFIG_GEN_VERS;
     }
 
-    public boolean isFabricVersionAtOrAfter(String version) {
 
-        final int[] vers = parseVersion(version);
-        for (int i = 0; i < 3; ++i) {
-            if (vers[i] > fabricVersion[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public boolean isFabricVersionBefore(String version) {
-
-        return !isFabricVersionAtOrAfter(version);
-    }
 
     private static int[] parseVersion(String version) {
         if (null == version || version.isEmpty()) {
@@ -373,31 +342,6 @@ public class TestConfig {
                     cert.getAbsolutePath()));
         }
 
-        if (!isRunningAgainstFabric10()) {
-            File clientCert;
-            File clientKey;
-            if ("orderer".equals(type)) {
-                clientCert = Paths.get(getTestChannelPath(), "crypto-config/ordererOrganizations/example.com/users/Admin@example.com/tls/client.crt").toFile();
-
-                clientKey = Paths.get(getTestChannelPath(), "crypto-config/ordererOrganizations/example.com/users/Admin@example.com/tls/client.key").toFile();
-            } else {
-                clientCert = Paths.get(getTestChannelPath(), "crypto-config/peerOrganizations/", domainName, "users/User1@" + domainName, "tls/client.crt").toFile();
-                clientKey = Paths.get(getTestChannelPath(), "crypto-config/peerOrganizations/", domainName, "users/User1@" + domainName, "tls/client.key").toFile();
-            }
-
-            if (!clientCert.exists()) {
-                throw new RuntimeException(String.format("Missing  client cert file for: %s. Could not find at location: %s", name,
-                        clientCert.getAbsolutePath()));
-            }
-
-            if (!clientKey.exists()) {
-                throw new RuntimeException(String.format("Missing  client key file for: %s. Could not find at location: %s", name,
-                        clientKey.getAbsolutePath()));
-            }
-            ret.setProperty("clientCertFile", clientCert.getAbsolutePath());
-            ret.setProperty("clientKeyFile", clientKey.getAbsolutePath());
-        }
-
         ret.setProperty("pemFile", cert.getAbsolutePath());
 
         ret.setProperty("hostnameOverride", name);
@@ -419,9 +363,6 @@ public class TestConfig {
 
     }
 
-    public boolean isRunningAgainstFabric10() {
-        return isFabricVersionBefore("1.1");
-    }
 
 
     private String getDomainName(final String name) {

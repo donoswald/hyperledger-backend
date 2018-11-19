@@ -272,12 +272,7 @@ public class Main {
     ////For GO language and serving just a single user, chaincodeSource is mostly likely the users GOPATH
     installProposalRequest.setChaincodeSourceLocation(Paths.get(CHAINCODE_PATH, CHAIN_CODE_FILEPATH).toFile());
 
-    if (testConfig.isFabricVersionAtOrAfter("1.1")) { // Fabric 1.1 added support for  META-INF in the chaincode image.
-
-      //This sets an index on the variable a in the chaincode // see http://hyperledger-fabric.readthedocs.io/en/master/couchdb_as_state_database.html#using-couchdb-from-chaincode
-      // The file IndexA.json as part of the META-INF will be packaged with the source to create the index.
       installProposalRequest.setChaincodeMetaInfLocation(new File(NETWORK_PATH));
-    }
 
     installProposalRequest.setChaincodeVersion(CHAIN_CODE_VERSION);
     installProposalRequest.setChaincodeLanguage(CHAIN_CODE_LANG);
@@ -348,13 +343,8 @@ public class Main {
       peerProperties.put("grpc.NettyChannelBuilderOption.maxInboundMessageSize", 9000000);
 
       Peer peer = client.newPeer(peerName, peerLocation, peerProperties);
-      if (testConfig.isFabricVersionAtOrAfter("1.3")) {
         newChannel.joinPeer(peer, createPeerOptions().setPeerRoles(EnumSet.of(Peer.PeerRole.ENDORSING_PEER, Peer.PeerRole.LEDGER_QUERY, Peer.PeerRole.CHAINCODE_QUERY, Peer.PeerRole.EVENT_SOURCE))); //Default is all roles.
 
-      } else {
-        // Set peer to not be all roles but eventing.
-        newChannel.joinPeer(peer, createPeerOptions().setPeerRoles(EnumSet.of(Peer.PeerRole.ENDORSING_PEER, Peer.PeerRole.LEDGER_QUERY, Peer.PeerRole.CHAINCODE_QUERY)));
-      }
       everyother = !everyother;
     }
 
