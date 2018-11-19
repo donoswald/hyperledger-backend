@@ -15,8 +15,6 @@
 package com.trivadis.hyperledger.backend;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
@@ -27,6 +25,8 @@ import org.hyperledger.fabric.sdk.Enrollment;
 import org.hyperledger.fabric.sdk.HFClient;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.security.NoSuchAlgorithmException;
@@ -44,7 +44,7 @@ import java.util.Properties;
 public class SampleStore {
 
     private String file;
-    private Log logger = LogFactory.getLog(SampleStore.class);
+    private Logger log = LoggerFactory.getLogger(SampleStore.class);
     private CryptoSuite cryptoSuite;
 
     public SampleStore(File file) {
@@ -77,11 +77,10 @@ public class SampleStore {
         Properties properties = new Properties();
         try (InputStream input = new FileInputStream(file)) {
             properties.load(input);
-            input.close();
         } catch (FileNotFoundException e) {
-            logger.info(String.format("Could not find the file \"%s\"", file));
+            log.info(String.format("Could not find the file \"%s\"", file));
         } catch (IOException e) {
-            logger.warn(String.format("Could not load keyvalue store from file \"%s\", reason:%s",
+            log.warn(String.format("Could not load keyvalue store from file \"%s\", reason:%s",
                     file, e.getMessage()));
         }
 
@@ -104,7 +103,7 @@ public class SampleStore {
             output.close();
 
         } catch (IOException e) {
-            logger.warn(String.format("Could not save the keyvalue store, reason:%s", e.getMessage()));
+            log.warn(String.format("Could not save the keyvalue store, reason:%s", e.getMessage()));
         }
     }
 

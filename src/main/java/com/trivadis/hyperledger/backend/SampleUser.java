@@ -33,7 +33,7 @@ public class SampleUser implements User, Serializable {
     private String affiliation;
     private String organization;
     private String enrollmentSecret;
-    Enrollment enrollment = null; //need access in test env.
+    private Enrollment enrollment = null; //need access in test env.
 
     private transient SampleStore keyValStore;
     private String keyValStoreName;
@@ -98,15 +98,6 @@ public class SampleUser implements User, Serializable {
         return this.affiliation;
     }
 
-    /**
-     * Set the affiliation.
-     *
-     * @param affiliation the affiliation.
-     */
-    public void setAffiliation(String affiliation) {
-        this.affiliation = affiliation;
-        saveState();
-    }
 
     @Override
     public Enrollment getEnrollment() {
@@ -192,10 +183,6 @@ public class SampleUser implements User, Serializable {
         this.enrollment = enrollment;
         saveState();
 
-    }
-
-    public void setIdemixEnrollment(Enrollment enrollment) {
-        this.enrollment = enrollment;
     }
 
     public static String toKeyValStoreName(String name, String org) {

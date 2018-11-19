@@ -54,10 +54,6 @@ public class SampleOrg {
         this.mspid = mspid;
     }
 
-    public SampleUser getAdmin() {
-        return admin;
-    }
-
     public void setAdmin(SampleUser admin) {
         this.admin = admin;
     }
@@ -140,14 +136,6 @@ public class SampleOrg {
 
     public User getUser(String name) {
         return userMap.get(name);
-    }
-
-    public Collection<String> getOrdererLocations() {
-        return Collections.unmodifiableCollection(ordererLocations.values());
-    }
-
-    public Collection<String> getEventHubLocations() {
-        return Collections.unmodifiableCollection(eventHubLocations.values());
     }
 
 

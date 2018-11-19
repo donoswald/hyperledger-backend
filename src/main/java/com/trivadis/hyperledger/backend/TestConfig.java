@@ -13,17 +13,12 @@
  */
 package com.trivadis.hyperledger.backend;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hyperledger.fabric.sdk.helper.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,13 +38,7 @@ import java.util.regex.Pattern;
  */
 
 public class TestConfig {
-    private static final Log logger = LogFactory.getLog(TestConfig.class);
-
-    private static final String DEFAULT_CONFIG = "src/test/java/org/hyperledger/fabric/sdk/testutils.properties";
-    private static final String ORG_HYPERLEDGER_FABRIC_SDK_CONFIGURATION = "org.hyperledger.fabric.sdktest.configuration";
-    private static final String ORG_HYPERLEDGER_FABRIC_SDK_TEST_FABRIC_HOST = "ORG_HYPERLEDGER_FABRIC_SDK_TEST_FABRIC_HOST";
-    private static final String LOCALHOST = //Change test to reference another host .. easier config for my testing on Windows !
-            System.getenv(ORG_HYPERLEDGER_FABRIC_SDK_TEST_FABRIC_HOST) == null ? "localhost" : System.getenv(ORG_HYPERLEDGER_FABRIC_SDK_TEST_FABRIC_HOST);
+   private static final Logger log = LoggerFactory.getLogger(TestConfig.class);
 
     private static final String PROPBASE = "org.hyperledger.fabric.sdktest.";
 
@@ -62,7 +51,7 @@ public class TestConfig {
     private static final Pattern orgPat = Pattern.compile("^" + Pattern.quote(INTEGRATIONTESTS_ORG) + "([^\\.]+)\\.mspid$");
 
     private static final String INTEGRATIONTESTSTLS = PROPBASE + "integrationtests.tls";
-    public final String FAB_CONFIG_GEN_VERS="v1.3";
+    public final String FAB_CONFIG_GEN_VERS = "v1.3";
 
     private static TestConfig config;
     private static final Properties sdkProperties = new Properties();
@@ -76,9 +65,7 @@ public class TestConfig {
     private final boolean runningFabricTLS;
     private final HashMap<String, SampleOrg> sampleOrgs = new HashMap<>();
 
-    private static final String ORG_HYPERLEDGER_FABRIC_SDKTEST_VERSION="1.3.0";
-
-   // int[] fabricVersion = new int[3];
+    private static final String ORG_HYPERLEDGER_FABRIC_SDKTEST_VERSION = "1.3.0";
 
     private TestConfig() {
 
@@ -88,48 +75,18 @@ public class TestConfig {
 
         }
 
-        File loadFile;
-        FileInputStream configProps;
 
         try {
-            loadFile = new File(System.getProperty(ORG_HYPERLEDGER_FABRIC_SDK_CONFIGURATION, DEFAULT_CONFIG))
-                    .getAbsoluteFile();
-            logger.debug(String.format("Loading configuration from %s and it is present: %b", loadFile.toString(),
-                    loadFile.exists()));
-            configProps = new FileInputStream(loadFile);
-            sdkProperties.load(configProps);
-
-        } catch (IOException e) { // if not there no worries just use defaults
-//            logger.warn(String.format("Failed to load any test configuration from: %s. Using toolkit defaults",
-//                    DEFAULT_CONFIG));
+            sdkProperties.load(TestConfig.class.getClassLoader().getResourceAsStream("config.properties"));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         } finally {
 
-            // Default values
 
-            defaultProperty(INVOKEWAITTIME, "32000");
-            defaultProperty(DEPLOYWAITTIME, "120000");
-            defaultProperty(PROPOSALWAITTIME, "120000");
-            defaultProperty(RUNIDEMIXMTTEST, "false");
-
-            //////
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.mspid", "Org1MSP");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.domname", "org1.example.com");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.ca_location", "http://" + LOCALHOST + ":7054");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.caName", "ca0");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.peer_locations", "peer0.org1.example.com@grpc://" + LOCALHOST + ":7051, peer1.org1.example.com@grpc://" + LOCALHOST + ":7056");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.orderer_locations", "orderer.example.com@grpc://" + LOCALHOST + ":7050");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.eventhub_locations", "peer0.org1.example.com@grpc://" + LOCALHOST + ":7053,peer1.org1.example.com@grpc://" + LOCALHOST + ":7058");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.mspid", "Org2MSP");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.domname", "org2.example.com");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.ca_location", "http://" + LOCALHOST + ":8054");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.peer_locations", "peer0.org2.example.com@grpc://" + LOCALHOST + ":8051,peer1.org2.example.com@grpc://" + LOCALHOST + ":8056");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.orderer_locations", "orderer.example.com@grpc://" + LOCALHOST + ":7050");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.eventhub_locations", "peer0.org2.example.com@grpc://" + LOCALHOST + ":8053, peer1.org2.example.com@grpc://" + LOCALHOST + ":8058");
-
-            defaultProperty(INTEGRATIONTESTSTLS, null);
             runningTLS = null != sdkProperties.getProperty(INTEGRATIONTESTSTLS, null);
             runningFabricCATLS = runningTLS;
             runningFabricTLS = runningTLS;
+
 
             for (Map.Entry<Object, Object> x : sdkProperties.entrySet()) {
                 final String key = x.getKey() + "";
@@ -199,27 +156,6 @@ public class TestConfig {
     }
 
 
-
-    private static int[] parseVersion(String version) {
-        if (null == version || version.isEmpty()) {
-            throw new AssertionError("Version is bad :" + version);
-        }
-        String[] split = version.split("[ \\t]*\\.[ \\t]*");
-        if (split.length < 1 || split.length > 3) {
-            throw new AssertionError("Version is bad :" + version);
-        }
-        int[] ret = new int[3];
-        int i = 0;
-        for (; i < split.length; ++i) {
-            ret[i] = Integer.parseInt(split[i]);
-        }
-        for (; i < 3; ++i) {
-            ret[i] = 0;
-        }
-        return ret;
-
-    }
-
     private String grpcTLSify(String location) {
         location = location.trim();
         Exception e = Utils.checkGrpcUrl(location);
@@ -251,12 +187,6 @@ public class TestConfig {
 
     }
 
-    public void destroy() {
-        // config.sampleOrgs = null;
-        config = null;
-
-    }
-
     /**
      * getProperty return back property for the given value.
      *
@@ -268,30 +198,11 @@ public class TestConfig {
         String ret = sdkProperties.getProperty(property);
 
         if (null == ret) {
-            logger.warn(String.format("No configuration value found for '%s'", property));
+            log.warn(String.format("No configuration value found for '%s'", property));
         }
         return ret;
     }
 
-    private static void defaultProperty(String key, String value) {
-
-        String ret = System.getProperty(key);
-        if (ret != null) {
-            sdkProperties.put(key, ret);
-        } else {
-            String envKey = key.toUpperCase().replaceAll("\\.", "_");
-            ret = System.getenv(envKey);
-            if (null != ret) {
-                sdkProperties.put(key, ret);
-            } else {
-                if (null == sdkProperties.getProperty(key) && value != null) {
-                    sdkProperties.put(key, value);
-                }
-
-            }
-
-        }
-    }
 
     public int getTransactionWaitTime() {
         return Integer.parseInt(getProperty(INVOKEWAITTIME));
@@ -362,7 +273,6 @@ public class TestConfig {
         return "network/e2e-2Orgs/" + FAB_CONFIG_GEN_VERS;
 
     }
-
 
 
     private String getDomainName(final String name) {
