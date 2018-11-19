@@ -33,8 +33,6 @@ public class Main {
   private static final TransactionRequest.Type CHAIN_CODE_LANG = TransactionRequest.Type.JAVA;
   private static final int DEPLOYWAITTIME = testConfig.getDeployWaitTime();
 
-  private final TestConfigHelper configHelper = new TestConfigHelper();
-
   private Collection<SampleOrg> testSampleOrgs;
   private File sampleStoreFile = new File(System.getProperty("java.io.tmpdir") + "/HFCSampletest.properties");
   private SampleStore sampleStore = null;
@@ -42,11 +40,9 @@ public class Main {
   private Map<String, Properties> clientTLSProperties = new HashMap<>();
 
 
-  private void createUsers() throws Exception {
+  private void execute() throws Exception {
 
     resetConfig();
-
-    configHelper.customizeConfig();
 
     testSampleOrgs = testConfig.getIntegrationTestsSampleOrgs();
     //Set up hfca for each sample org
@@ -457,7 +453,7 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
     Main main = new Main();
-    main.createUsers();
+    main.execute();
   }
 
 
