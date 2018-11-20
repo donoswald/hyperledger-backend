@@ -298,7 +298,7 @@ public class Main {
 
     for (String orderName : sampleOrg.getOrdererNames()) {
 
-      Properties ordererProperties = testConfig.getOrdererProperties(orderName);
+      Properties ordererProperties = testConfig.getOrdererProperties(orderName,NETWORK_PATH);
 
       //example of setting keepAlive to avoid timeouts on inactive http2 connections.
       // Under 5 minutes would require changes to server side to accept faster ping rates.
@@ -326,7 +326,7 @@ public class Main {
     for (String peerName : sampleOrg.getPeerNames()) {
       String peerLocation = sampleOrg.getPeerLocation(peerName);
 
-      Properties peerProperties = testConfig.getPeerProperties(peerName); //test properties for peer.. if any.
+      Properties peerProperties = testConfig.getPeerProperties(peerName,NETWORK_PATH); //test properties for peer.. if any.
       if (peerProperties == null) {
         peerProperties = new Properties();
       }
@@ -346,7 +346,7 @@ public class Main {
 
     for (String eventHubName : sampleOrg.getEventHubNames()) {
 
-      final Properties eventHubProperties = testConfig.getEventHubProperties(eventHubName);
+      final Properties eventHubProperties = testConfig.getEventHubProperties(eventHubName,NETWORK_PATH);
 
       eventHubProperties.put("grpc.NettyChannelBuilderOption.keepAliveTime", new Object[]{5L, TimeUnit.MINUTES});
       eventHubProperties.put("grpc.NettyChannelBuilderOption.keepAliveTimeout", new Object[]{8L, TimeUnit.SECONDS});
@@ -376,7 +376,7 @@ public class Main {
 
       final String orgName = sampleOrg.getName();
       final String mspid = sampleOrg.getMSPID();
-      ca.setCryptoSuite(org.hyperledger.fabric.sdk.security.CryptoSuite.Factory.getCryptoSuite());
+      ca.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
 
       if (testConfig.isRunningFabricTLS()) {
         //This shows how to get a client TLS certificate from Fabric CA
@@ -421,9 +421,9 @@ public class Main {
       final String sampleOrgDomainName = sampleOrg.getDomainName();
 
       SampleUser peerOrgAdmin = sampleStore.getMember(sampleOrgName + "Admin", sampleOrgName, sampleOrg.getMSPID(),
-          Util.findFileSk(Paths.get(testConfig.getTestChannelPath(), "crypto-config/peerOrganizations/",
+          Util.findFileSk(Paths.get(testConfig.getTestChannelPath(NETWORK_PATH), "crypto-config/peerOrganizations/",
               sampleOrgDomainName, format("/users/Admin@%s/msp/keystore", sampleOrgDomainName)).toFile()),
-          Paths.get(testConfig.getTestChannelPath(), "crypto-config/peerOrganizations/", sampleOrgDomainName,
+          Paths.get(testConfig.getTestChannelPath(NETWORK_PATH), "crypto-config/peerOrganizations/", sampleOrgDomainName,
               format("/users/Admin@%s/msp/signcerts/Admin@%s-cert.pem", sampleOrgDomainName, sampleOrgDomainName)).toFile());
       sampleOrg.setPeerAdmin(peerOrgAdmin); //A special user that can create channels, join peers and install chaincode
 

@@ -215,24 +215,24 @@ public class TestConfig {
 
     }
 
-    public Properties getPeerProperties(String name) {
+    public Properties getPeerProperties(String name,String networkPath) {
 
-        return getEndPointProperties("peer", name);
-
-    }
-
-    public Properties getOrdererProperties(String name) {
-
-        return getEndPointProperties("orderer", name);
+        return getEndPointProperties("peer", name,networkPath);
 
     }
 
-    public Properties getEndPointProperties(final String type, final String name) {
+    public Properties getOrdererProperties(String name,String networkPath) {
+
+        return getEndPointProperties("orderer", name,networkPath);
+
+    }
+
+    public Properties getEndPointProperties(final String type, final String name,String networkPath) {
         Properties ret = new Properties();
 
         final String domainName = getDomainName(name);
 
-        File cert = Paths.get(getTestChannelPath(), "crypto-config/ordererOrganizations".replace("orderer", type), domainName, type + "s",
+        File cert = Paths.get(getTestChannelPath(networkPath), "crypto-config/ordererOrganizations".replace("orderer", type), domainName, type + "s",
                 name, "tls/server.crt").toFile();
         if (!cert.exists()) {
             throw new RuntimeException(String.format("Missing cert file for: %s. Could not find at location: %s", name,
@@ -248,15 +248,15 @@ public class TestConfig {
         return ret;
     }
 
-    public Properties getEventHubProperties(String name) {
+    public Properties getEventHubProperties(String name,String networkPath) {
 
-        return getEndPointProperties("peer", name); //uses same as named peer
+        return getEndPointProperties("peer", name,networkPath); //uses same as named peer
 
     }
 
-    public String getTestChannelPath() {
+    public String getTestChannelPath(String networkPath) {
 
-        return "network/e2e-2Orgs/" + FAB_CONFIG_GEN_VERS;
+        return networkPath+"/e2e-2Orgs/" + FAB_CONFIG_GEN_VERS;
 
     }
 
